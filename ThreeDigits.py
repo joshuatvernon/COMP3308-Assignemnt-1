@@ -21,6 +21,8 @@ class ThreeDigits():
         self.search_path = []
         # keep track of visited states
         self.visited = []
+        # keep track of expanded states
+        self.expanded = []
 
 
     # Function to get all the valid children of a state
@@ -37,14 +39,14 @@ class ThreeDigits():
         # the list of children if it is a valid new state
         for mutator in mutators:
             new_state = state + mutator
-            if new_state not in self.forbidden_states and (new_state, state) not in self.visited:
+            if new_state not in self.forbidden_states and (new_state, state) not in self.expanded:
                 # convert state into string to add extra 0's to check validity
                 state_str = str(state)
                 if len(state_str) == 2:
                     state_str = '0' + state_str
                 elif len(state_str) == 1:
                     state_str = '00' + state_str
-
+                # check for 0's and 9's
                 if mutator < 0:
                     # check if digit being mutated is not 0
                     if int(state_str[abs(len(str(abs(mutator))) - 3) % 3]) != 0:
@@ -105,6 +107,7 @@ class ThreeDigits():
 
         # enqueue the start state to the queue as a tuple (state, parent_state)
         queue.enqueue(State(self.start_state))
+        self.expanded.append((self.start_state, None))
 
         # keep looping whilst there's still states in the queue
         while queue.is_empty() != True:
@@ -117,6 +120,7 @@ class ThreeDigits():
             # add current states children states to the queue
             for child_state in children_states:
                 queue.enqueue(State(child_state, current_state))
+                self.expanded.append((child_state, current_state))
 
             # check if end state is found
             if current_state == self.end_state:
