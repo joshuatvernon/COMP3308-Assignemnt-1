@@ -107,7 +107,7 @@ class ThreeDigits():
         queue.enqueue(State(self.start_state))
 
         # keep looping whilst there's still states in the queue
-        while queue:
+        while queue.is_empty() != True:
             # dequeue next state and add it to visited
             current_state = queue.front().get_state()
             parent_state = queue.dequeue().get_parent()
@@ -158,9 +158,12 @@ class ThreeDigits():
         visited = ','.join(visited)
         # path -- convert integers to strings and add 0's to non 3-digit numbers
         # then append values together with commas
-        path = ["0" + state if len(state) == 2 else state for state in list(map(str, self.search_path))]
-        path = ["00" + state if len(state) == 1 else state for state in path]
-        path = ','.join(path)
+        if len(self.search_path) == 0:
+            path = "No solution found."
+        else:
+            path = ["0" + state if len(state) == 2 else state for state in list(map(str, self.search_path))]
+            path = ["00" + state if len(state) == 1 else state for state in path]
+            path = ','.join(path)
         # return search path + visited lists as a string
         return path + '\n' + visited
 
@@ -189,8 +192,9 @@ def main():
     output = threeDigitsSolver.solve()
 
     # Write the solution to the output file
-    with open('output.txt', mode='wt') as output_file:
-        output_file.write(output)
+    # with open('output.txt', mode='wt') as output_file:
+    #     output_file.write(output)
+    print(output)
 
 
 if __name__ == '__main__':
