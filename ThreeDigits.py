@@ -5,22 +5,18 @@ from State import State
 
 class ThreeDigits():
 
-    # Used to remove mutators based upon last state
-    DIGIT_ONE = 1
-    DIGIT_TWO = 3
-    DIGIT_THREE = 5
-
     def __init__(self, search_algorithm, start_state, end_state, forbidden_states):
         # Initalise the search algorithm to use
         self.search_algorithm = search_algorithm
         # Initalise the start, end and forbidden states
-        self.start_state = start_state
-        self.end_state = end_state
+        self.start_state = State(start_state, State(None))
+        self.end_state = State(end_state)
         self.forbidden_states = forbidden_states
         # obtain search path states
         self.search_path = []
         # keep track of visited states
         self.visited = []
+        self.other_visited = []
         # keep track of expanded states
         self.expanded = []
 
@@ -29,19 +25,19 @@ class ThreeDigits():
     def get_children_states(self, state, parent_state):
         # Create a list of mutator helpers
         mutators = [-100,100,-10,10,-1,1]
-        if parent_state:
+        if parent_state.get_state() != None:
             # remove last updated digit mutators
-            del mutators[self.last_update(state, parent_state) - 1]
-            del mutators[self.last_update(state, parent_state) - 1]
+            del mutators[self.last_update(state, parent_state)]
+            del mutators[self.last_update(state, parent_state)]
         # store children in list to be returned
         children = []
         # loop through the leftover mutators and mutate the state, adding it to
         # the list of children if it is a valid new state
         for mutator in mutators:
-            new_state = state + mutator
-            if new_state not in self.forbidden_states and (new_state, self.last_update(new_state, state)) not in self.expanded:
+            new_state = State(state.get_state() + mutator, state)
+            if new_state.get_state() not in self.forbidden_states and (new_state.get_state(), self.last_update(new_state, state)) not in self.expanded:
                 # convert state into string to add extra 0's to check validity
-                state_str = str(state)
+                state_str = str(state.get_state())
                 if len(state_str) == 2:
                     state_str = '0' + state_str
                 elif len(state_str) == 1:
@@ -63,7 +59,7 @@ class ThreeDigits():
         # run requested search algorithm populating the visited and expanded lists
         if (self.search_algorithm == 'B'):
             self.BFS()
-            self.path(self.end_state)
+            self.pathBFS(self.end_state.get_state())
         elif (self.search_algorithm == 'D'):
             self.DFS()
         elif (self.search_algorithm == 'I'):
@@ -76,28 +72,33 @@ class ThreeDigits():
             self.hillClimbing()
         else:
             raise TypeError('The letter entered doesn\'t represent any search algorithm.')
-        # return visited and expanded states
+
+        # call debug to debug global variables at the end
         self.debug()
+
+
+        # return search path and visited states
         return self.toString()
 
 
+    # Return an index used to remove mutators based upon last state
     def last_update(self, state, parent_state):
-        if abs(state - parent_state) == 100:
-            return self.DIGIT_ONE
-        elif abs(state - parent_state) == 10:
-            return self.DIGIT_TWO
+        if abs(state.get_state() - parent_state.get_state()) == 100:
+            return 0
+        elif abs(state.get_state() - parent_state.get_state()) == 10:
+            return 2
         else:
-            return self.DIGIT_THREE
+            return 4
 
 
     # recursively find search path
-    def path(self, end_state):
+    def pathBFS(self, end_state):
         if end_state == None:
             return
         for state in self.visited:
             if state[0] == end_state:
                 self.search_path.insert(0, state[0])
-                self.path(state[1])
+                self.pathBFS(state[1])
                 return
 
 
@@ -107,31 +108,57 @@ class ThreeDigits():
         queue = Queue()
 
         # enqueue the start state to the queue as a tuple (state, parent_state)
-        queue.enqueue(State(self.start_state))
-        self.expanded.append((self.start_state, None))
+        self.start_state.set_parent(State(None))
+        queue.enqueue(self.start_state)
+        self.expanded.append((self.start_state.get_state(), None))
 
         # keep looping whilst there's still states in the queue
         while queue.is_empty() != True:
             # dequeue next state and add it to visited
-            current_state = queue.front().get_state()
+            current_state = queue.front()
             parent_state = queue.dequeue().get_parent()
             children_states = self.get_children_states(current_state, parent_state)
-            self.visited.append((current_state, parent_state))
+            self.visited.append((current_state.get_state(), parent_state.get_state()))
 
             # add current states children states to the queue
             for child_state in children_states:
-                queue.enqueue(State(child_state, current_state))
-                self.expanded.append((child_state, self.last_update(child_state, current_state)))
+                queue.enqueue(child_state)
+                self.expanded.append((child_state.get_state(), self.last_update(child_state, current_state)))
 
             # check if end state is found
-            if current_state == self.end_state:
+            if current_state.get_state() == self.end_state.get_state():
                 # end state found
                 return
 
+    # Implementation of the depth first search algorithm
+    def DFS_recurse(self, current_state, parent_state):
+        if len(self.visited) == 1000:
+            return State(-1, State(None))
+        # get children states and add current state to visited
+        children_states = self.get_children_states(current_state, parent_state)
+        self.visited.append((current_state.get_state(), parent_state.get_state()))
+
+        # check if end state is found
+        if current_state.get_state() == self.end_state.get_state():
+            # end state found
+            return current_state
+
+        # loop through children states and perform DFS on them
+        for child_state in children_states:
+            self.expanded.append((child_state.get_state(), self.last_update(child_state, current_state)))
+            result = self.DFS_recurse(child_state, current_state)
+            if result.get_state() == self.end_state.get_state():
+                return result
+
+        return State(-1, State(None))
 
     # Implementation of the depth first search algorithm
     def DFS(self):
-        pass
+        self.expanded.append((self.start_state.get_state(), None))
+        end_state = self.DFS_recurse(self.start_state, self.start_state.get_parent())
+        while end_state.get_state() != None:
+            self.search_path.insert(0, end_state.get_state())
+            end_state = end_state.get_parent()
 
 
     # Implementation of the iterative deepening search algorithm
@@ -158,18 +185,20 @@ class ThreeDigits():
     def toString(self):
         # path -- convert integers to strings and add 0's to non 3-digit numbers
         # then append values together with commas
-        if len(self.search_path) == 0:
+        if len(self.search_path) == 0 or self.search_path == [-1]:
             path = "No solution found."
         else:
             path = ["0" + state if len(state) == 2 else state for state in list(map(str, self.search_path))]
             path = ["00" + state if len(state) == 1 else state for state in path]
             path = ','.join(path)
+
         # visited -- convert integers to strings and add 0's to non 3-digit numbers
         # then append values together with commas
         visited = ["0" + state if len(state) == 2 else state for state in list(map(str, [state_tuple[0] for state_tuple in  self.visited]))]
         visited = ["00" + state if len(state) == 1 else state for state in visited]
         visited = ','.join(visited)
-        # return search path + visited lists as a string
+
+        # concatenate search path + visited lists as a string
         return path + '\n' + visited
 
 
