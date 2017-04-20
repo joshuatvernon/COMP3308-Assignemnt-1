@@ -5,8 +5,16 @@ class State(object):
 
 	# Initalise state with optional parent and children
 	def __init__(self, state, parent_state=None, children_states=None):
+		# Initalise state
 		self.state = state
+		#  Initalise parent state
 		self.parent_state = parent_state
+		# Initalise depth
+		if self.parent_state == None or self.parent_state == State(None):
+			self.depth = 0
+		else:
+			self.depth = self.parent_state.get_depth() + 1
+		# Initalise children states
 		if children_states:
 		    self.children_states = children_states
 		else:
@@ -21,6 +29,11 @@ class State(object):
 	# return parent state
 	def get_parent(self):
 	    return self.parent_state
+
+
+	# return depth
+	def get_depth(self):
+		return self.depth
 
 
 	# return children states
