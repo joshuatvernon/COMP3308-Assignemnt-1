@@ -132,7 +132,7 @@ class ThreeDigits():
         self.expanded.append((self.start_state.get_state(), None))
 
         # keep looping whilst there's still states in the queue
-        while queue.is_empty() != True:
+        while queue.is_empty() != True and len(self.visited) <= 1000:
             # dequeue next state and add it to visited
             current_state = queue.front()
             parent_state = queue.dequeue().get_parent()
@@ -186,16 +186,14 @@ class ThreeDigits():
         # enqueue the start state to the queue as a tuple (state, parent_state)
         self.start_state.set_parent(State(None))
         self.expanded.append((self.start_state.get_state(), None))
-        fringe = [self.start_state]
+        fringe = []
 
         # Initalise current state and parent state
         current_state = self.start_state
         parent_state = self.start_state.get_parent()
 
-        # keep looping whilst there's still states in the queue
-        debug_idx = 0
+        # keep looping whilst there's still states in the fringe
         while True:
-            debug_idx += 1
             children_states = self.get_children_states(current_state, parent_state)
             self.visited.append(current_state.get_state())
 
@@ -210,21 +208,24 @@ class ThreeDigits():
                 self.path(current_state)
                 break
 
-            if len(fringe) > 0:
-                best_new_state = fringe[0]
-                best_heuristic = self.manhattan_heuristic(fringe[0], self.goal_state)
-                best_new_state_idx = 0
-                idx = 0
-                for new_state in fringe:
-                    if self.manhattan_heuristic(new_state, self.goal_state) <= best_heuristic:
-                        best_heuristic = self.manhattan_heuristic(new_state, self.goal_state)
-                        best_new_state = new_state
-                        best_new_state_idx = idx
-                    idx += 1
-                del fringe[best_new_state_idx]
-                parent_state = current_state
-                current_state = best_new_state
-            else:
+            # Initalise best new state, best heuristic and index with values of first state in fringe
+            best_new_state = fringe[0]
+            best_heuristic = self.manhattan_heuristic(fringe[0], self.goal_state)
+            best_new_state_idx = 0
+            idx = 0
+            for new_state in fringe:
+                if self.manhattan_heuristic(new_state, self.goal_state) <= best_heuristic:
+                    # update best heuristic found, best new state found and the index of it, so we
+                    # can delete it from the fringe
+                    best_heuristic = self.manhattan_heuristic(new_state, self.goal_state)
+                    best_new_state = new_state
+                    best_new_state_idx = idx
+                idx += 1
+            # delete the chosen new state from the fringe, update current state and parent state
+            current_state = fringe.pop(best_new_state_idx)
+            parent_state = current_state.get_parent()
+
+            if len(fringe) == 0 and len(self.visited) > 1000:
                 break
 
 
@@ -286,7 +287,6 @@ def main():
         forbidden_states = list(map(int, content[2].split(',')))
     else:
         forbidden_states = []
-
     # Create a ThreeDigits object
     threeDigitsSolver = ThreeDigits(args.search_algorithm, start_state, end_state, forbidden_states)
     # Call solve to get a string with the search path and visited states, then print to stdout
