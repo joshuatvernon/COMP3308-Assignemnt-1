@@ -51,7 +51,7 @@ class ThreeDigits():
                         children.append(new_state)
                 else:
                     # check if digit being mutated is not 9
-                    if  or int(state_str[abs(len(str(abs(mutator))) - 3) % 3]) != 9:
+                    if int(state_str[abs(len(str(abs(mutator))) - 3) % 3]) != 9:
                         children.append(new_state)
         return children
 
