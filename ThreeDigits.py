@@ -183,7 +183,7 @@ class ThreeDigits():
 
     # Implementation of the greedy search algorithm
     def greedy(self):
-        # enqueue the start state to the queue as a tuple (state, parent_state)
+        # add start state to expanded and initalise fringe
         self.start_state.set_parent(State(None))
         self.expanded.append((self.start_state.get_state(), None))
         fringe = []
@@ -192,7 +192,7 @@ class ThreeDigits():
         current_state = self.start_state
         parent_state = self.start_state.get_parent()
 
-        # keep looping whilst there's still states in the fringe
+        # keep looping whilst there's still states in the fringe and visited is less than 1000
         while True:
             children_states = self.get_children_states(current_state, parent_state)
             self.visited.append(current_state.get_state())
@@ -237,7 +237,51 @@ class ThreeDigits():
 
     # Implementation of the A* search algorithm
     def aStar(self):
-        pass
+        # add start state to expanded and initalise fringe
+        self.start_state.set_parent(State(None))
+        self.expanded.append((self.start_state.get_state(), None))
+        fringe = []
+
+        # Initalise current state and parent state
+        current_state = self.start_state
+        parent_state = self.start_state.get_parent()
+
+        # keep looping whilst there's still states in the fringe and visited is less than 1000
+        while True:
+            children_states = self.get_children_states(current_state, parent_state)
+            self.visited.append(current_state.get_state())
+
+            # add current states children states to expanded and the fringe
+            for child_state in children_states:
+                fringe.append(child_state)
+                self.expanded.append((child_state.get_state(), self.last_update(child_state, current_state)))
+
+            # check if goal state is found
+            if current_state.get_state() == self.goal_state.get_state():
+                # goal state found
+                self.path(current_state)
+                break
+
+            if len(fringe) > 0:
+                # Initalise best new state, best heuristic and index with values of first state in fringe
+                best_new_state = fringe[0]
+                best_heuristic = self.manhattan_heuristic(fringe[0], self.goal_state) + fringe[0].get_depth()
+                best_new_state_idx = 0
+                idx = 0
+                for new_state in fringe:
+                    if self.manhattan_heuristic(new_state, self.goal_state) + new_state.get_depth() <= best_heuristic:
+                        # update best heuristic found, best new state found and the index of it, so we
+                        # can delete it from the fringe
+                        best_heuristic = self.manhattan_heuristic(new_state, self.goal_state) + new_state.get_depth()
+                        best_new_state = new_state
+                        best_new_state_idx = idx
+                    idx += 1
+                # delete the chosen new state from the fringe, update current state and parent state
+                current_state = fringe.pop(best_new_state_idx)
+                parent_state = current_state.get_parent()
+
+            if len(fringe) <= 0 and len(self.visited) >= 1000:
+                break
 
 
     # Implementation of the hill climbing search algorithm
