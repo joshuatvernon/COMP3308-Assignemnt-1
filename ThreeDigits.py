@@ -5,18 +5,17 @@ from State import State
 
 class ThreeDigits():
 
-    def __init__(self, search_algorithm, start_state, end_state, forbidden_states):
+    def __init__(self, search_algorithm, start_state, goal_state, forbidden_states):
         # Initalise the search algorithm to use
         self.search_algorithm = search_algorithm
         # Initalise the start, end and forbidden states
         self.start_state = State(start_state, State(None))
-        self.end_state = State(end_state)
+        self.goal_state = State(goal_state)
         self.forbidden_states = forbidden_states
         # obtain search path states
         self.search_path = []
         # keep track of visited states
         self.visited = []
-        self.other_visited = []
         # keep track of expanded states
         self.expanded = []
 
@@ -132,16 +131,13 @@ class ThreeDigits():
         queue.enqueue(self.start_state)
         self.expanded.append((self.start_state.get_state(), None))
 
-        # store end state to find the path after search
-        end_state = None
-
         # keep looping whilst there's still states in the queue
         while queue.is_empty() != True:
             # dequeue next state and add it to visited
             current_state = queue.front()
             parent_state = queue.dequeue().get_parent()
             children_states = self.get_children_states(current_state, parent_state)
-            self.visited.append((current_state.get_state(), parent_state.get_state()))
+            self.visited.append(current_state.get_state())
 
             # add current states children states to the queue
             for child_state in children_states:
@@ -149,7 +145,7 @@ class ThreeDigits():
                 self.expanded.append((child_state.get_state(), self.last_update(child_state, current_state)))
 
             # check if end state is found
-            if current_state.get_state() == self.end_state.get_state():
+            if current_state.get_state() == self.goal_state.get_state():
                 # end state found
                 self.path(current_state)
                 break
@@ -161,10 +157,10 @@ class ThreeDigits():
             return State(-1, State(None))
         # get children states and add current state to visited
         children_states = self.get_children_states(current_state, parent_state)
-        self.visited.append((current_state.get_state(), parent_state.get_state()))
+        self.visited.append(current_state.get_state())
 
         # check if end state is found
-        if current_state.get_state() == self.end_state.get_state():
+        if current_state.get_state() == self.goal_state.get_state():
             # end state found
             return current_state
 
@@ -172,7 +168,7 @@ class ThreeDigits():
         for child_state in children_states:
             self.expanded.append((child_state.get_state(), self.last_update(child_state, current_state)))
             result = self.DFS_recurse(child_state, current_state)
-            if result.get_state() == self.end_state.get_state():
+            if result.get_state() == self.goal_state.get_state():
                 return result
 
         return State(-1, State(None))
@@ -185,13 +181,55 @@ class ThreeDigits():
         self.path(end_state)
 
 
-    # Implementation of the iterative deepening search algorithm
-    def IDS(self):
-        pass
-
-
     # Implementation of the greedy search algorithm
     def greedy(self):
+        # enqueue the start state to the queue as a tuple (state, parent_state)
+        self.start_state.set_parent(State(None))
+        self.expanded.append((self.start_state.get_state(), None))
+        fringe = [self.start_state]
+
+        # Initalise current state and parent state
+        current_state = self.start_state
+        parent_state = self.start_state.get_parent()
+
+        # keep looping whilst there's still states in the queue
+        debug_idx = 0
+        while True:
+            debug_idx += 1
+            children_states = self.get_children_states(current_state, parent_state)
+            self.visited.append(current_state.get_state())
+
+            # add current states children states to expanded and the fringe
+            for child_state in children_states:
+                fringe.append(child_state)
+                self.expanded.append((child_state.get_state(), self.last_update(child_state, current_state)))
+
+            # check if goal state is found
+            if current_state.get_state() == self.goal_state.get_state():
+                # goal state found
+                self.path(current_state)
+                break
+
+            if len(fringe) > 0:
+                best_new_state = fringe[0]
+                best_heuristic = self.manhattan_heuristic(fringe[0], self.goal_state)
+                best_new_state_idx = 0
+                idx = 0
+                for new_state in fringe:
+                    if self.manhattan_heuristic(new_state, self.goal_state) <= best_heuristic:
+                        best_heuristic = self.manhattan_heuristic(new_state, self.goal_state)
+                        best_new_state = new_state
+                        best_new_state_idx = idx
+                    idx += 1
+                del fringe[best_new_state_idx]
+                parent_state = current_state
+                current_state = best_new_state
+            else:
+                break
+
+
+    # Implementation of the iterative deepening search algorithm
+    def IDS(self):
         pass
 
 
@@ -218,7 +256,7 @@ class ThreeDigits():
 
         # visited -- convert integers to strings and add 0's to non 3-digit numbers
         # then append values together with commas
-        visited = ["0" + state if len(state) == 2 else state for state in list(map(str, [state_tuple[0] for state_tuple in  self.visited]))]
+        visited = ["0" + state if len(state) == 2 else state for state in list(map(str, self.visited))]
         visited = ["00" + state if len(state) == 1 else state for state in visited]
         visited = ','.join(visited)
 
