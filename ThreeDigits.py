@@ -231,9 +231,43 @@ class ThreeDigits():
 
 
     # Implementation of the iterative deepening search algorithm
-    def IDS(self):
-        pass
+    def IDS_recurse(self, current_state, parent_state, depth):
+        if len(self.visited) == 1000:
+            return State(-1, State(None))
+        # get children states and add current state to visited
+        children_states = self.get_children_states(current_state, parent_state)
+        self.visited.append(current_state.get_state())
 
+        # check if end state is found
+        if current_state.get_state() == self.goal_state.get_state():
+            # end state found
+            return current_state
+
+        # If reached the maximum depth, stop recursing
+        if depth <= 0:
+            return State(-1, State(None))
+
+        # loop through children states and perform DFS on them
+        for child_state in children_states:
+            self.expanded.append((child_state.get_state(), self.last_update(child_state, current_state)))
+            result = self.IDS_recurse(child_state, current_state, depth - 1)
+            if result.get_state() == self.goal_state.get_state():
+                return result
+
+        return State(-1, State(None))
+
+
+    # Implementation of the iterative deepening search algorithm
+    def IDS(self):
+        depth = 0
+        while True:
+            self.expanded.append((self.start_state.get_state(), None))
+            end_state = self.IDS_recurse(self.start_state, self.start_state.get_parent(), depth)
+            if end_state.get_state() == self.goal_state.get_state():
+                self.path(end_state)
+                break
+            depth += 1
+            self.visited = []
 
     # Implementation of the A* search algorithm
     def aStar(self):
@@ -308,11 +342,6 @@ class ThreeDigits():
 
         # concatenate search path + visited lists as a string
         return path + '\n' + visited
-
-
-    # just a method for printing debug messages in one place easy to delete at the end of the assignment
-    def debug(self):
-        pass
 
 
 def main():
