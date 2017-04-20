@@ -91,6 +91,36 @@ class ThreeDigits():
             return 4
 
 
+    # The Manhattan heuristic for a move between two numbers A and B is the sum of the absolute
+    # differences of the corresponding digits of these numbers
+    def manhattan_heuristic(self, A, B):
+        a, b = [0,0,0], [0,0,0]
+
+        # get A's digits
+        if len(str(A.get_state())) == 3:
+            a[0] = int(str(A.get_state())[0])
+            a[1] = int(str(A.get_state())[1])
+            a[2] = int(str(A.get_state())[2])
+        elif len(str(A.get_state())) == 2:
+            a[1] = int(str(A.get_state())[0])
+            a[2] = int(str(A.get_state())[1])
+        else:
+            a[2] = A.get_state()
+
+        # get B's digits
+        if len(str(B.get_state())) == 3:
+            b[0] = int(str(B.get_state())[0])
+            b[1] = int(str(B.get_state())[1])
+            b[2] = int(str(B.get_state())[2])
+        elif len(str(B.get_state())) == 2:
+            b[1] = int(str(B.get_state())[0])
+            b[2] = int(str(B.get_state())[1])
+        else:
+            b[2] = B.get_state()
+
+        return abs(a[0] - b[0]) + abs(a[1] - b[1]) + abs(a[2] - b[2])
+
+
     # recursively find search path
     def pathBFS(self, end_state):
         if end_state == None:
