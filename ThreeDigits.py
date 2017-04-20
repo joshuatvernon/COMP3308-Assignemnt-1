@@ -39,7 +39,7 @@ class ThreeDigits():
         # the list of children if it is a valid new state
         for mutator in mutators:
             new_state = state + mutator
-            if new_state not in self.forbidden_states and (new_state, state) not in self.expanded:
+            if new_state not in self.forbidden_states and (new_state, self.last_update(new_state, state)) not in self.expanded:
                 # convert state into string to add extra 0's to check validity
                 state_str = str(state)
                 if len(state_str) == 2:
@@ -77,6 +77,7 @@ class ThreeDigits():
         else:
             raise TypeError('The letter entered doesn\'t represent any search algorithm.')
         # return visited and expanded states
+        self.debug()
         return self.toString()
 
 
@@ -120,7 +121,7 @@ class ThreeDigits():
             # add current states children states to the queue
             for child_state in children_states:
                 queue.enqueue(State(child_state, current_state))
-                self.expanded.append((child_state, current_state))
+                self.expanded.append((child_state, self.last_update(child_state, current_state)))
 
             # check if end state is found
             if current_state == self.end_state:
@@ -155,11 +156,6 @@ class ThreeDigits():
 
     # convert visited and expanded lists to string to be returned
     def toString(self):
-        # visited -- convert integers to strings and add 0's to non 3-digit numbers
-        # then append values together with commas
-        visited = ["0" + state if len(state) == 2 else state for state in list(map(str, [state_tuple[0] for state_tuple in  self.visited]))]
-        visited = ["00" + state if len(state) == 1 else state for state in visited]
-        visited = ','.join(visited)
         # path -- convert integers to strings and add 0's to non 3-digit numbers
         # then append values together with commas
         if len(self.search_path) == 0:
@@ -168,8 +164,18 @@ class ThreeDigits():
             path = ["0" + state if len(state) == 2 else state for state in list(map(str, self.search_path))]
             path = ["00" + state if len(state) == 1 else state for state in path]
             path = ','.join(path)
+        # visited -- convert integers to strings and add 0's to non 3-digit numbers
+        # then append values together with commas
+        visited = ["0" + state if len(state) == 2 else state for state in list(map(str, [state_tuple[0] for state_tuple in  self.visited]))]
+        visited = ["00" + state if len(state) == 1 else state for state in visited]
+        visited = ','.join(visited)
         # return search path + visited lists as a string
         return path + '\n' + visited
+
+
+    # just a method for printing debug messages in one place easy to delete at the end of the assignment
+    def debug(self):
+        pass
 
 
 def main():
@@ -192,13 +198,8 @@ def main():
 
     # Create a ThreeDigits object
     threeDigitsSolver = ThreeDigits(args.search_algorithm, start_state, end_state, forbidden_states)
-    # Call solve to get a string with the visited and expanded states
-    output = threeDigitsSolver.solve()
-
-    # Write the solution to the output file
-    # with open('output.txt', mode='wt') as output_file:
-    #     output_file.write(output)
-    print(output)
+    # Call solve to get a string with the search path and visited states, then print to stdout
+    print(threeDigitsSolver.solve())
 
 
 if __name__ == '__main__':
