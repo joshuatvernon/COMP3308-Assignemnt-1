@@ -208,22 +208,23 @@ class ThreeDigits():
                 self.path(current_state)
                 break
 
-            # Initalise best new state, best heuristic and index with values of first state in fringe
-            best_new_state = fringe[0]
-            best_heuristic = self.manhattan_heuristic(fringe[0], self.goal_state)
-            best_new_state_idx = 0
-            idx = 0
-            for new_state in fringe:
-                if self.manhattan_heuristic(new_state, self.goal_state) <= best_heuristic:
-                    # update best heuristic found, best new state found and the index of it, so we
-                    # can delete it from the fringe
-                    best_heuristic = self.manhattan_heuristic(new_state, self.goal_state)
-                    best_new_state = new_state
-                    best_new_state_idx = idx
-                idx += 1
-            # delete the chosen new state from the fringe, update current state and parent state
-            current_state = fringe.pop(best_new_state_idx)
-            parent_state = current_state.get_parent()
+            if len(fringe) > 0:
+                # Initalise best new state, best heuristic and index with values of first state in fringe
+                best_new_state = fringe[0]
+                best_heuristic = self.manhattan_heuristic(fringe[0], self.goal_state)
+                best_new_state_idx = 0
+                idx = 0
+                for new_state in fringe:
+                    if self.manhattan_heuristic(new_state, self.goal_state) <= best_heuristic:
+                        # update best heuristic found, best new state found and the index of it, so we
+                        # can delete it from the fringe
+                        best_heuristic = self.manhattan_heuristic(new_state, self.goal_state)
+                        best_new_state = new_state
+                        best_new_state_idx = idx
+                    idx += 1
+                # delete the chosen new state from the fringe, update current state and parent state
+                current_state = fringe.pop(best_new_state_idx)
+                parent_state = current_state.get_parent()
 
             if len(fringe) <= 0 and len(self.visited) >= 1000:
                 break
