@@ -17,10 +17,10 @@ class ThreeDigits():
         self.start_state = start_state
         self.end_state = end_state
         self.forbidden_states = forbidden_states
+        # obtain search path states
+        self.search_path = []
         # keep track of visited states
         self.visited = []
-        # keep track of expanded states
-        self.expanded = []
 
 
     # Function to get all the valid children of a state
@@ -38,13 +38,20 @@ class ThreeDigits():
         for mutator in mutators:
             new_state = state + mutator
             if new_state not in self.forbidden_states and (new_state, state) not in self.visited:
+                # convert state into string to add extra 0's to check validity
+                state_str = str(state)
+                if len(state_str) == 2:
+                    state_str = '0' + state_str
+                elif len(state_str) == 1:
+                    state_str = '00' + state_str
+
                 if mutator < 0:
                     # check if digit being mutated is not 0
-                    if int(str(state)[abs(len(str(abs(mutator))) - 3) % 3]) != 0:
+                    if int(state_str[abs(len(str(abs(mutator))) - 3) % 3]) != 0:
                         children.append(new_state)
                 else:
                     # check if digit being mutated is not 9
-                    if int(str(state)[abs(len(str(abs(mutator))) - 3) % 3]) != 9:
+                    if  or int(state_str[abs(len(str(abs(mutator))) - 3) % 3]) != 9:
                         children.append(new_state)
         return children
 
@@ -54,6 +61,7 @@ class ThreeDigits():
         # run requested search algorithm populating the visited and expanded lists
         if (self.search_algorithm == 'B'):
             self.BFS()
+            self.path(self.end_state)
         elif (self.search_algorithm == 'D'):
             self.DFS()
         elif (self.search_algorithm == 'I'):
@@ -77,6 +85,18 @@ class ThreeDigits():
             return self.DIGIT_TWO
         else:
             return self.DIGIT_THREE
+
+
+    # recursively find search path
+    def path(self, end_state):
+        if end_state == None:
+            return
+        for state in self.visited:
+            if state[0] == end_state:
+                self.search_path.insert(0, state[0])
+                self.path(state[1])
+                return
+
 
     # Implementation of the breadth first search algorithm
     def BFS(self):
@@ -136,8 +156,13 @@ class ThreeDigits():
         visited = ["0" + state if len(state) == 2 else state for state in list(map(str, [state_tuple[0] for state_tuple in  self.visited]))]
         visited = ["00" + state if len(state) == 1 else state for state in visited]
         visited = ','.join(visited)
-        # return visited and expanded lists as a string
-        return visited + '\n'
+        # path -- convert integers to strings and add 0's to non 3-digit numbers
+        # then append values together with commas
+        path = ["0" + state if len(state) == 2 else state for state in list(map(str, self.search_path))]
+        path = ["00" + state if len(state) == 1 else state for state in path]
+        path = ','.join(path)
+        # return search path + visited lists as a string
+        return path + '\n' + visited
 
 
 def main():
