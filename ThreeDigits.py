@@ -225,7 +225,7 @@ class ThreeDigits():
             current_state = fringe.pop(best_new_state_idx)
             parent_state = current_state.get_parent()
 
-            if len(fringe) == 0 and len(self.visited) > 1000:
+            if len(fringe) <= 0 and len(self.visited) >= 1000:
                 break
 
 

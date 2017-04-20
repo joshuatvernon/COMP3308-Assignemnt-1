@@ -4,3 +4,4 @@ __pycache__/
 # Ignore output text file
 output.txt
 heuristic.py
+ThreeDigitsAlex.py
