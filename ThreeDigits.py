@@ -21,6 +21,27 @@ class ThreeDigits():
         self.expanded = []
 
 
+    # Function to call the requested search algorithm
+    def solve(self):
+        # run requested search algorithm populating the visited and expanded lists
+        if (self.search_algorithm == 'B'):
+            self.BFS()
+        elif (self.search_algorithm == 'D'):
+            self.DFS()
+        elif (self.search_algorithm == 'I'):
+            self.IDS()
+        elif (self.search_algorithm == 'G'):
+            self.greedy()
+        elif (self.search_algorithm == 'A'):
+            self.aStar()
+        elif (self.search_algorithm == 'H'):
+            self.hillClimbing()
+        else:
+            raise TypeError('The letter entered doesn\'t represent any search algorithm.')
+        # return search path and visited states
+        return self.toString()
+
+
     # Function to get all the valid children of a state
     def get_children_states(self, state, parent_state):
         # Create a list of mutator helpers
@@ -52,33 +73,6 @@ class ThreeDigits():
                     if int(state_str[abs(len(str(abs(mutator))) - 3) % 3]) != 9:
                         children.append(new_state)
         return children
-
-
-    # Function to call the requested search algorithm
-    def solve(self):
-        # run requested search algorithm populating the visited and expanded lists
-        if (self.search_algorithm == 'B'):
-            self.BFS()
-            self.pathBFS(self.end_state.get_state())
-        elif (self.search_algorithm == 'D'):
-            self.DFS()
-        elif (self.search_algorithm == 'I'):
-            self.IDS()
-        elif (self.search_algorithm == 'G'):
-            self.greedy()
-        elif (self.search_algorithm == 'A'):
-            self.aStar()
-        elif (self.search_algorithm == 'H'):
-            self.hillClimbing()
-        else:
-            raise TypeError('The letter entered doesn\'t represent any search algorithm.')
-
-        # call debug to debug global variables at the end
-        self.debug()
-
-
-        # return search path and visited states
-        return self.toString()
 
 
     # Return an index used to remove mutators based upon last state
@@ -121,15 +115,11 @@ class ThreeDigits():
         return abs(a[0] - b[0]) + abs(a[1] - b[1]) + abs(a[2] - b[2])
 
 
-    # recursively find search path
-    def pathBFS(self, end_state):
-        if end_state == None:
-            return
-        for state in self.visited:
-            if state[0] == end_state:
-                self.search_path.insert(0, state[0])
-                self.pathBFS(state[1])
-                return
+    # update the search path
+    def path(self, end_state):
+        while end_state.get_state() != None:
+            self.search_path.insert(0, end_state.get_state())
+            end_state = end_state.get_parent()
 
 
     # Implementation of the breadth first search algorithm
@@ -141,6 +131,9 @@ class ThreeDigits():
         self.start_state.set_parent(State(None))
         queue.enqueue(self.start_state)
         self.expanded.append((self.start_state.get_state(), None))
+
+        # store end state to find the path after search
+        end_state = None
 
         # keep looping whilst there's still states in the queue
         while queue.is_empty() != True:
@@ -158,7 +151,9 @@ class ThreeDigits():
             # check if end state is found
             if current_state.get_state() == self.end_state.get_state():
                 # end state found
-                return
+                self.path(current_state)
+                break
+
 
     # Implementation of the depth first search algorithm
     def DFS_recurse(self, current_state, parent_state):
@@ -182,13 +177,12 @@ class ThreeDigits():
 
         return State(-1, State(None))
 
+
     # Implementation of the depth first search algorithm
     def DFS(self):
         self.expanded.append((self.start_state.get_state(), None))
         end_state = self.DFS_recurse(self.start_state, self.start_state.get_parent())
-        while end_state.get_state() != None:
-            self.search_path.insert(0, end_state.get_state())
-            end_state = end_state.get_parent()
+        self.path(end_state)
 
 
     # Implementation of the iterative deepening search algorithm
