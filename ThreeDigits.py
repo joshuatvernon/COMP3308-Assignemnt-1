@@ -235,6 +235,7 @@ class ThreeDigits():
     # Implementation of the iterative deepening search algorithm
     def IDS_recurse(self, current_state, parent_state, depth):
         if len(self.visited) + len(self.visited_iteration) >= 1000:
+            # No solution found.
             return State(-1, State(None))
         # get children states and add current state to visited
         children_states = self.get_children_states(current_state, parent_state)
@@ -247,6 +248,7 @@ class ThreeDigits():
 
         # If reached the maximum depth, stop recursing
         if depth == 0:
+            # No solution found.
             return State(-1, State(None))
 
         # loop through children states and continue to recursively perform DFS on them
