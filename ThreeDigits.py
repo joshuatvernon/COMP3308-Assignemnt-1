@@ -228,26 +228,25 @@ class ThreeDigits():
                 current_state = fringe.pop(best_new_state_idx)
                 parent_state = current_state.get_parent()
 
-            if len(fringe) <= 0 and len(self.visited) >= 1000:
+            if len(fringe) <= 0 or len(self.visited) >= 1000:
                 break
 
 
     # Implementation of the iterative deepening search algorithm
     def IDS_recurse(self, current_state, parent_state, depth):
-        if len(self.visited) == 1000:
+        if len(self.visited) + len(self.visited_iteration) >= 1000:
             return State(-1, State(None))
         # get children states and add current state to visited
         children_states = self.get_children_states(current_state, parent_state)
         self.visited_iteration.append(current_state.get_state())
 
-        # print("DEPTH {}: {}".format(depth, visited_iteration))
         # check if end state is found
         if current_state.get_state() == self.goal_state.get_state():
             # end state found
             return current_state
 
         # If reached the maximum depth, stop recursing
-        if depth <= 0:
+        if depth == 0:
             return State(-1, State(None))
 
         # loop through children states and continue to recursively perform DFS on them
@@ -320,13 +319,57 @@ class ThreeDigits():
                 current_state = fringe.pop(best_new_state_idx)
                 parent_state = current_state.get_parent()
 
-            if len(fringe) <= 0 and len(self.visited) >= 1000:
+            if len(fringe) <= 0 or len(self.visited) >= 1000:
                 break
 
 
     # Implementation of the hill climbing search algorithm
     def hillClimbing(self):
-        pass
+        # add start state to expanded and initalise fringe
+        self.start_state.set_parent(State(None))
+        self.expanded.append((self.start_state.get_state(), None))
+
+        # Initalise current state and parent state
+        current_state = self.start_state
+        parent_state = self.start_state.get_parent()
+
+        # keep looping whilst there's still states in the fringe and visited is less than 1000
+        while True:
+            children_states = self.get_children_states(current_state, parent_state)
+            self.visited.append(current_state.get_state())
+
+            # # add current states children states to expanded and the fringe
+            # for child_state in children_states:
+            #     self.expanded.append((child_state.get_state(), self.last_update(child_state, current_state)))
+
+            # check if goal state is found
+            if current_state.get_state() == self.goal_state.get_state():
+                # goal state found
+                self.path(current_state)
+                break
+
+            if len(children_states) > 0:
+                # Initalise best new state, best heuristic and index with values of first state in fringe
+                best_new_state = children_states[0]
+                best_heuristic = self.manhattan_heuristic(children_states[0], self.goal_state)
+                best_new_state_idx = 0
+                idx = 0
+                for child_state in children_states:
+                    if self.manhattan_heuristic(child_state, self.goal_state) <= best_heuristic:
+                        # update best heuristic found, best new state found and the index of it, so we
+                        # can delete it from the fringe
+                        best_heuristic = self.manhattan_heuristic(child_state, self.goal_state)
+                        best_new_state = child_state
+                        best_new_state_idx = idx
+                    idx += 1
+                if self.manhattan_heuristic(current_state, self.goal_state) > self.manhattan_heuristic(best_new_state, self.goal_state):
+                    # delete the chosen new state from the fringe, update current state and parent state
+                    current_state = children_states.pop(best_new_state_idx)
+                    parent_state = current_state.get_parent()
+                else:
+                    break
+            else:
+                break
 
 
     # convert visited and expanded lists to string to be returned
