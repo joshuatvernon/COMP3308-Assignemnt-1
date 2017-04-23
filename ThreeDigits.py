@@ -237,26 +237,30 @@ class ThreeDigits():
         if len(self.visited) + len(self.visited_iteration) >= 1000:
             # No solution found.
             return State(-1, State(None))
-        # get children states and add current state to visited
+        # get children states and add current state to visited iteration
         children_states = self.get_children_states(current_state, parent_state)
         self.visited_iteration.append(current_state.get_state())
 
-        # check if end state is found
+        # check if goal state is found
         if current_state.get_state() == self.goal_state.get_state():
-            # end state found
+            # goal state found
             return current_state
 
-        # If reached the maximum depth, stop recursing
+
         if depth == 0:
             # No solution found.
+            for child_state in children_states:
+                self.expanded.append((child_state.get_state(), self.last_update(child_state, current_state)))
             return State(-1, State(None))
 
         # loop through children states and continue to recursively perform DFS on them
         for child_state in children_states:
             self.expanded.append((child_state.get_state(), self.last_update(child_state, current_state)))
-            result = self.IDS_recurse(child_state, current_state, depth - 1)
-            if result.get_state() == self.goal_state.get_state():
-                return result
+            # If reached the maximum depth, stop recursing
+            if depth > 0:
+                end_state = self.IDS_recurse(child_state, current_state, depth - 1)
+                if end_state.get_state() == self.goal_state.get_state():
+                    return end_state
 
         return State(-1, State(None))
 
@@ -273,7 +277,7 @@ class ThreeDigits():
                 self.path(end_state)
                 break
             depth += 1
-            self.expanded = []
+            self.expanded = [(self.start_state.get_state(), None)]
 
 
     # Implementation of the A* search algorithm

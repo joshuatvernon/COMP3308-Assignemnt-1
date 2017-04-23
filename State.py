@@ -58,6 +58,8 @@ class State(object):
 
 	# return true if same state value, parent state value and children state values, else false
 	def __cmp__(self, other_state):
+		if other_state == None:
+			return False
 		return other_state.get_state() == self.state and \
 		       other_state.get_parent() == self.parent_state and \
 			   other_state.get_children() == self.children_states
